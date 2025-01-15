@@ -32,7 +32,7 @@ k = 20
 print(a[k])  -- "great"
 ```
 
-table永远是“匿名的(anonymous)”，一个持有 table 的变量与 table 自身之间没有固定的关联性。
+`table` 永远是“匿名的(anonymous)”，一个持有 table 的变量与 table 自身之间没有固定的关联性。
 
 ```Lua
 a = {}
@@ -45,7 +45,24 @@ a = nil -- 现在只有b还在引用table
 b = nil -- 再也没有对table的引用了
 ```
 
-当一个程序再也没有对一个table引用时，lua的垃圾收集器（garbage collector）最终会删除该table。
+当一个程序再也没有对一个 `table` 引用时，lua的垃圾收集器（garbage collector）最终会删除该 `table`。
+
+
+
+`table` 库提供了一个函数 `table.sort()`，它接受一个`table`并对其中的元素排序。下面是一个示例：
+
+```lua
+network = {
+    {name = "grauna", IP = "210.26.30.34"},
+    {name = "aeeaial", IP = "210.26.30.23"},
+    {name = "lua", IP = "210.26.23.12"},
+    {name = "derain", IP = "210.26.23.20"},
+}
+-- 如果想以 name 字段、按反向的字符顺序来对这个 table 排序的话，只需这么写：
+table.sort(network, function (a, b) return (a.name > b.name) end)  -- 匿名函数
+```
+
+
 
 # 表达式
 
@@ -157,4 +174,185 @@ print(add(3, 4, 10, 25, 12))  -- 54
 解释：参数表中的3个点（...）表示该函数可接受不同数量的实参。一个函数要访问它的变长参数时，仍需用到三个点（...）。但不同的是，此时这3个点是作为一个表达式来使用的。
 
 表达式“...”的行为类似于一个具有多重返回值的函数，它返回的是当前函数的所有变长参数。
+
+## 具名实参
+
+当一个函数拥有大量的参数，而其中大部分参数是可选的，最好使用具名实参。下面是一个简单示例：
+
+```lua
+w = Window { x = 0, y = 0, width = 300, height = 200, title = "Lua", background = "blue", border = true }
+```
+
+注意：函数传递参数时接的是一个 `table`，所以使用花括号。在参数只有一个 `table` 时，可以省略圆括号不写，上述代码就采用了这种写法。
+
+# 六、深入函数
+
+在 Lua 中，函数是一种“第一类值”，它们具有特定的词法域。
+
+-   **第一类值**：在 Lua 中，函数与其他传统类型的值（例如：数字和字符串）具有相同的权利。函数可以存储到变量中（无论全局变量还是局部变量）或 `table` 中，可以作为实参传递给其他函数，还可以作为其他函数的返回值。
+-   **词法域**：在 Lua 中，一个函数可以嵌套在另一个函数中，内部的函数可以访问外部函数中的变量。
+
+总结：函数是值。
+
+```lua
+-- 函数为值的示例
+function foo(x) return 2 * x end
+foo = function(x) return 2 * x end
+```
+
+**匿名函数**：
+
+```lua
+-- 假如有一个table，按照姓名对table进行排序，可以这么写：
+table.sort(network, function (a, b) return (a.name > b.name) end)  -- 匿名函数
+```
+
+像 `sort()` 这样的函数，接受另一个函数作为实参的，称其是一个“高阶函数”。应用匿名函数来创建高阶函数所需的实参则可以带来更大的灵活性。注意：高阶函数并没有什么特权，Lua 强调将函数视为“第一类值”，所以高阶函数只是一种基于该观点的应用体现而已。
+
+下面是一个高阶函数的示例：
+
+```lua
+function derivative(f, delta)
+    delta = delta or 1e-3  -- 科学技术法，等同于0.001
+    return function(x) 
+        return (f(x + delta) - f(x)) / delta
+    end
+end
+-- 对于特定的函数 f 调用 derivative(f) 将（近似的）返回其导数，例如：
+c = derivative(math.sin)
+print(math.cos(10), c(10))  -- -0.83907152907645	-0.83879937869802
+```
+
+由于函数在 Lua 中是一种“第一类值”，所以不仅可以将其存储在全局变量中，还可以存储在局部变量甚至 `table` 的字段中。将函数存储在 `table` 字段中可以支持许多 Lua 的高级应用，例如模块（module）和面向对象编程。
+
+## 非全局函数
+
+在定义递归的局部函数时，要注意下面这种情况：
+
+```lua
+local fact = function(n)
+    if n == 0 then 
+        return 1
+    else 
+        return n * fact(n-1)  -- 错误
+    end
+end
+```
+
+当 Lua 编译到函数体中调用 `fact(n-1)` 的地方时，由于 `fact` 尚未定义完毕，因此这句表达式其实是调用了一个全局的 `fact`，而非此函数自身。为了解决这个问题，可以先定义一个局部变量，然后再定义函数本身：
+
+```Lua
+local fact
+fact = function(n)
+    if n == 0 then
+        return 1
+    else 
+        return n * fact(n-1)
+    end
+end
+```
+
+同样也可以使用 Lua 的语法糖来定义递归函数：
+
+```lua
+local function fact(n)
+    if n == 0 then
+        return 1
+    else 
+        return n * fact(n-1)
+    end
+end 
+```
+
+## 正确的尾调用
+
+在 Lua 中支持“尾调用消除”。所谓的“尾调用”就是一种类似于 `goto` 的函数调用。当一个函数调用是另一个函数的最后一个动作时，该调用才算是一条“尾调用”。举个例子：以下代码中对 g 的调用就是一条“尾调用”：
+
+```lua
+function f(x) 
+    return g(x) 
+end
+```
+
+”尾调用“不会耗费栈空间，所以一个程序可以拥有无数嵌套的“尾调用”。举例来说，在调用以下函数时，传入任何数字作为参数都不会造成栈溢出：
+
+```lua
+function foo(n)
+    if n > 0 then
+        return foo(n-1)
+    end
+end
+```
+
+**易错**：下面的代码不是尾调用
+
+```lua
+function f(x)
+    g(x)  -- 当g调用完后，f不能立即返回，它还需丢弃g返回的临时结果
+end
+-- 类似的，以下也不是尾调用
+return g(x) + 1  -- 必须做一次加法
+return x or g(x)  -- 必须调整为一个返回值
+return (g(x))  -- 必须调整为一个返回值
+```
+
+### 尾调用和状态机
+
+在 Lua 中，“尾调用”的一大应用就是编写“状态机”。这种程序通常以一个函数来表示一个的状态，改变状态就是 goto 到另一个特定的函数。举一个简单的例子来说明这个问题。
+
+例如：一个迷宫中有几间房间，每间房间中最多有东南西北4扇门。用户在每一步移动中都需要输入一个移动的方向。如果在某个方向上有门，那么用户可以进入相应的房间；不然，程序就打印一条警告。游戏目标就是让用户从最初的房间走到最终的房间。
+
+这个游戏就是一种典型的状态机，其中当前房间就是一个状态。可以将迷宫中的每间房间实现为一个函数，并使用“尾调用”来实现从一间房间移动到另一间房间。在以下代码中，实现一个具有4间房间的迷宫。
+
+```lua
+function room1()
+    local move = io.read()
+    if move == "south" then 
+        return room3()
+    elseif move == "east" then 
+        return room2()
+    else 
+        print("invalid move") 
+        return room1()  -- stay in the same room
+    end
+end
+
+function room2()
+    local move = io.read()
+    if move == "south" then
+        return room4()
+    elseif move == "west" then
+        return room1()
+    else
+        print("invalid move")
+        return room2()
+    end
+end
+
+function room3()
+    local move = io.read()
+    if move == "north" then
+        return room1()
+    elseif move == "east" then
+        return room4()
+    else
+        print("invalid move")
+        return room3()
+    end
+end
+
+function room4()
+    print("You win!")
+end
+
+room1()  -- 启动游戏
+```
+
+如果没有“尾调用消除”的话，每次用户的移动都会创建一个新的栈层，移动若干步之后就有可能会导致栈溢出。而“尾调用消除”则对用户移动的次数没有任何限制。这是因为每次移动实际上都只是完成一条 `goto` 语句到另一个函数，而非传统的函数调用。
+
+# 七、迭代器与泛型for
+
+
+
+
 
