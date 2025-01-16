@@ -3,8 +3,8 @@ local function onpercent(self)
 		local percent = self:GetPercent()
 		if percent >= TUNING.PERISH_FRESH then
 			if not self.inst:HasTag("fresh") then
-				self.inst:RemoveTag("stale") --不新鲜的
-				self.inst:RemoveTag("spoiled")--腐烂物拥有的标签
+				self.inst:RemoveTag("stale") -- 不新鲜的
+				self.inst:RemoveTag("spoiled")-- 腐烂物拥有的标签
 				self.inst:AddTag("fresh")
 				self.inst:PushEvent("forceperishchange")
 			end

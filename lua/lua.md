@@ -352,7 +352,92 @@ room1()  -- 启动游戏
 
 # 七、迭代器与泛型for
 
+## 迭代器与closure
 
+在 Lua 中，通常将迭代器表示为函数。每调用一次函数，即返回集合中的“下一个元素”。
 
+每个迭代器都需要在每次成功调用之间保持一些状态，这样才能知道它所在的位置及如何步进到下一个位置。closure 对于这类任务提供了极佳的支持，一个 closure 就是一种可以访问其外部嵌套环境中的局部变量的函数。对于 closure 而言，这些变量就可用于在成功调用之间保持状态值，从而使 closure 可以记住它在一次遍历中所在的位置。当然，为了创建一个新的 closure，还必须创建它的这些“非局部变量”。因此一个 closure 结构通常涉及到两个函数：closure 本身和一个用于创建该 closure 的工厂（factory）函数。
 
+下面是一个迭代器的简单示例：
+
+```lua
+-- 与 ipairs 不同的是该迭代器并不是返回每个元素的索引，而是返回元素的值：
+function values(t)
+    local i = 0
+    return function()
+        i = i + 1
+        return t[i]
+        end
+end
+```
+
+在本例中，values 就是一个工厂。每当调用这个工厂时，他就会创建一个一个新的 closure （即迭代器本身）。这个 closure 将它的状态保存在其外部变量 `t` 和 `i` 中。每当调用这个迭代器时它就从列表 `t` 中返回下一个值。知道最后一个元素返回后，迭代器就会返回 nil，以此表示迭代器的结束。
+
+可以在一个 `while` 循环中使用这个迭代器：
+
+```lua
+t = {10, 20, 30}
+iter = values(t)  -- 创建迭代器
+while true do 
+    local element = iter()  -- 调用迭代器
+    if element == nil then 
+        break
+    end
+	print(element)
+end
+```
+
+然而使用泛型for则更简单。它正是为这种迭代而设计的：
+
+```lua
+t = {10, 20, 30}
+for element in values(t) do
+    print(element)
+end
+```
+
+其他迭代器：
+
+-   allwords	-- 可以遍历当前输入文件中所有单词
+
+## 泛型for的语义
+
+泛型 for 在循环过程中保存了迭代器函数。实际上它保存着3个值：一个迭代器函数、一个恒定状态和一个控制变量。
+
+泛型 for 的语法如下：
+
+```lua
+for <var-list> in <exp-list> do
+    <body>
+end
+```
+
+其中，`<var-list>` 是一个或多个变量名的列表，以逗号分隔； `<exp-list>` 是一个或多个表达式的列表，同样以逗号分隔。通常表达式列表只有一个元素，即一句对迭代器工厂的调用。例如：
+
+```lua
+for k, v in pairs(t) do print(k, v) end
+```
+
+其中变量列表是 `k, v`，表达式列表只有一个元素 `pairs(t)`。一般来说变量列表中也只有一个变量，例如：
+
+```lua
+for line in io.lines() do
+    io.write(line, "\n")
+end
+```
+
+变量列表的第一元素称为“控制变量”。在循环过程中该值决不会为 nil，因为当它为 nil 时循环就结束了。
+
+for 做的第一件事情是对 in 后面的表达式求值。这些表达式应该返回3个值供for 保存：迭代器函数、恒定状态和控制变量的初值。
+
+## 无状态迭代器
+
+典型例子 `ipairs`，它可以用来迭代一个数组的所有元素：
+
+```lua
+a = {"one", "two", "three"}
+for i, v in ipairs(a) do
+    print(i, v)
+end
+```
 
