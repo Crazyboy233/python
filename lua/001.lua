@@ -50,44 +50,46 @@
     可以将迷宫中的每间房间实现为一个函数，并使用“尾调用”来实现从一间房间移动到另一间房间。
     在以下代码中，实现一个具有4间房间的迷宫。
 ]]
-function room1()
-    local move = io.read()
-    if move == "south" then 
-        return room3()
-    elseif move == "east" then 
-        return room2()
-    else 
-        print("invalid move") 
-        return room1()  -- stay in the same room
-    end
-end
+-- function room1()
+--     local move = io.read()
+--     if move == "south" then 
+--         return room3()
+--     elseif move == "east" then 
+--         return room2()
+--     else 
+--         print("invalid move") 
+--         return room1()  -- stay in the same room
+--     end
+-- end
 
-function room2()
-    local move = io.read()
-    if move == "south" then
-        return room4()
-    elseif move == "west" then
-        return room1()
-    else
-        print("invalid move")
-        return room2()
-    end
-end
+-- function room2()
+--     local move = io.read()
+--     if move == "south" then
+--         return room4()
+--     elseif move == "west" then
+--         return room1()
+--     else
+--         print("invalid move")
+--         return room2()
+--     end
+-- end
 
-function room3()
-    local move = io.read()
-    if move == "north" then
-        return room1()
-    elseif move == "east" then
-        return room4()
-    else
-        print("invalid move")
-        return room3()
-    end
-end
+-- function room3()
+--     local move = io.read()
+--     if move == "north" then
+--         return room1()
+--     elseif move == "east" then
+--         return room4()
+--     else
+--         print("invalid move")
+--         return room3()
+--     end
+-- end
 
-function room4()
-    print("You win!")
-end
+-- function room4()
+--     print("You win!")
+-- end
 
-room1()  -- 启动游戏
+-- room1()  -- 启动游戏
+
+

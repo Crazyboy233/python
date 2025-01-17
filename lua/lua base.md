@@ -354,7 +354,7 @@ room1()  -- 启动游戏
 
 ## 迭代器与closure
 
-在 Lua 中，通常将迭代器表示为函数。每调用一次函数，即返回集合中的“下一个元素”。
+在 Lua 中，通常将**迭代器**表示为**函数**。每调用一次函数，即返回集合中的“下一个元素”。
 
 每个迭代器都需要在每次成功调用之间保持一些状态，这样才能知道它所在的位置及如何步进到下一个位置。closure 对于这类任务提供了极佳的支持，一个 closure 就是一种可以访问其外部嵌套环境中的局部变量的函数。对于 closure 而言，这些变量就可用于在成功调用之间保持状态值，从而使 closure 可以记住它在一次遍历中所在的位置。当然，为了创建一个新的 closure，还必须创建它的这些“非局部变量”。因此一个 closure 结构通常涉及到两个函数：closure 本身和一个用于创建该 closure 的工厂（factory）函数。
 
@@ -415,7 +415,7 @@ end
 其中，`<var-list>` 是一个或多个变量名的列表，以逗号分隔； `<exp-list>` 是一个或多个表达式的列表，同样以逗号分隔。通常表达式列表只有一个元素，即一句对迭代器工厂的调用。例如：
 
 ```lua
-for k, v in pairs(t) do print(k, v) end
+for k, v in pairs(t) do print(k, v) end  -- pairs用来遍历table
 ```
 
 其中变量列表是 `k, v`，表达式列表只有一个元素 `pairs(t)`。一般来说变量列表中也只有一个变量，例如：
@@ -430,14 +430,241 @@ end
 
 for 做的第一件事情是对 in 后面的表达式求值。这些表达式应该返回3个值供for 保存：迭代器函数、恒定状态和控制变量的初值。
 
-## 无状态迭代器
+## 迭代器
 
-典型例子 `ipairs`，它可以用来迭代一个数组的所有元素：
+-   **无状态迭代器**，就是自身不保存任何状态的迭代器。
+
+​	典型例子 `ipairs`（工厂），它可以用来迭代一个数组的所有元素：		
 
 ```lua
 a = {"one", "two", "three"}
-for i, v in ipairs(a) do
+for i, v in ipairs(a) do  -- 要遍历的 table 是一个恒定状态，它不会在循环中改变
     print(i, v)
 end
 ```
 
+-   **具有复杂状态的迭代器**示例：将重写 `allwords` 迭代器，这个迭代器可以遍历当前输入文件中的所有单词。这次将它的状态保存到一个 `table` 中，这个 `table` 具有两个字段：`line` 和 `pos`。
+
+```lua
+-- 迭代器的起始函数只需返回迭代器函数和初始状态
+local iterator  -- 在后面定义
+function allwords()
+    local state = {line = io.read(), pos = 1}
+    return iterator, state
+end
+-- iterator 函数才开始真正的工作：
+function iterator(state)
+    while state.line do  -- 若为有效的行内容就进入循环
+        local s, e = string.find(state.line, "%w+", state.pos)
+        if s then  -- 知道了一个单词？
+            state.pos = e + 1  -- 更新下一个位置（找到这个单词后）
+            return string.sub(state.line, s, e)
+        else  -- 没找到单词
+            state.line = io.read()  -- 读取下一行
+            state.pos = 1  -- 从第一个位置开始
+        end
+	end
+    return nil
+end
+```
+
+后面会看到使用协同程序编写迭代器的方式，这种方式是功能最强的，但稍微有一点开销。
+
+# 九、协同程序
+
+**概念**：协同程序与线程差不多，就是一条执行序列，拥有自己独立的栈、局部变量和指令指针，同时又与其他协同程序共享全局变量和其他大部分东西。
+
+**协同程序与线程的区别**：
+
+-   一个具有多个线程的程序可以同时运行几个线程，而协同程序却需要彼此协作的运行。（也就是说，一个具有多个协同程序的程序在任意时刻只能运行一个协同程序，并且正在运行的协同程序只会在其显示地要求挂起时，它的执行才会暂停。）
+
+## 协同程序基础
+
+Lua 将所有关于协同程序的函数放置在一个名为 `coroutine` 的 `table` 中。函数 `create` 用于创建新的协同程序，它只有一个函数作为参数。该函数的代码就是协同程序所需执行的内容。`create` 会返回一个 thread 类型的值，用以表示新的协同程序。通常 `create` 的参数是一个匿名函数，例如：
+
+```lua
+co = coroutine.create(function () print("hello") end)
+print(co)  -- 打印thread: 0x600003f44008
+```
+
+**协同程序状态**：一个协同程序可以处于4种不同的状态：挂起（suspended）、运行（running）、死亡（dead）和正常（normal）。
+
+当创建一个协同程序时，它处于挂起状态。也就是说，协同程序不会在创建它时自动执行其内容。可以通过函数 `status` 来检查协同程序的状态：
+
+```lua
+ print(coroutine.status(co))  -- 打印suspended
+```
+
+函数 `coroutine.resume()` 用于启动或再次启动一个协同程序的执行，并将其状态由挂起改为运行：
+
+```lua
+coroutine.resume(co) -- 打印hello
+```
+
+在本例中，协同程序的内容只是简单地打印了 “hello” 后便终止了，然后它就处于死亡状态，也就再也无法返回了：
+
+```lua
+ print(coroutine.status(co))  -- 打印dead
+```
+
+### `yield` 函数
+
+`yield` 函数可以让一个运行中的协同程序挂起，而之后可以在恢复它的运行。示例：
+
+```lua
+co = coroutine.create(function ()
+    for i = 1, 10 do
+        print("co", i)
+        coroutine.yield()
+    end
+end)
+```
+
+现在当唤醒这个协同程序时，它就会开始执行，直到第一个 `yield`：
+
+```lua
+coroutine.resume(co) -- 打印co 1
+```
+
+如果此时检查其状态，会发现协同程序处于挂起状态，因此可以再次恢复其运行：
+
+```lua
+print(coroutine.status(co))  -- 打印suspended
+```
+
+从协同程序的角度看，所有在它挂起时发生的活动都发生在 `yield` 调用中。当恢复协同程序时，对于 `yield` 的调用才最终返回。然后协同程序继续它的执行，直到下一个 `yield` 调用或执行结束：
+
+```lua
+coroutine.resume(co)  -- co 2
+coroutine.resume(co)  -- co 3
+...
+coroutine.resume(co)  -- co 10
+coroutine.resume(co)  -- 什么都不打印
+```
+
+在最后一次调用 `resume` 时，协同程序的内容已经执行完毕并已经返回。因此，这时协同程序处于死亡状态。如果试图再次恢复它的执行，`resume` 将返回 false 及一条错误消息：“false cannot resume dead coroutine”
+
+**注意**：`resume` 是在保护模式中运行的。因此，如果在一个协同程序的执行中发生任何错误，Lua 是不会显示错误消息的，而是将执行权返回给 `resume` 调用。
+
+放一个协同程序 A 唤醒另一个协同程序 B 时，协同程序 A 就处于一个特殊状态，既不是挂起状态（无法继续 A 的执行），也不是运行状态（是 B 在运行）。所以将这时的状态称为“正常”状态。
+
+ 
+
+------
+
+Lua 的协同程序可以通过一对 `resume-yield` 来交换数据。在第一次调用 `resume` 时，并没有对应的 `yield` 在等待它，因此所有传递给 `resume` 的额外参数都将视为协同程序主函数的参数：
+
+```lua
+co = coroutine.create(function (a, b, c)
+    print("co", a, b, c)
+	end)
+coroutine.resume(co, 1, 2, 3)  -- 打印co 1 2 3
+```
+
+## 管道与过滤器
+
+在 Lua 中，协同程序的经典示例是“生产者——消费者”的问题。示例：
+
+```lua
+-- 生产者
+function producer ()
+    while true do
+        local x = io.read()  -- 产生新的值
+        send(x)              -- 发送给消费者
+    end
+end
+
+-- 消费者
+function consumer()
+    while true do
+        local x = recive()  -- 从生产者接受值
+        io.write(x, "\n")  -- 消费新的值
+    end
+end
+```
+
+这里有一个问题是如何将 `send` 与 `receive` 匹配起来。这是一个典型的 “谁具有主循环”的问题。由于生产者和消费者都处于活动状态，它们各自具有一个主循环，并且都将对方视为一个可调用的服务。对于这个特定的示例，可以很容易地修改其中一个函数的结构，展开它的循环，使其成为一个被动调用的函数，不过这样的结构改动可能会使某些真实的应用情况变得复杂。
+
+**协同程序**被称为是一种匹配生产者和消费者的理想工具，一对 `resume-yield` 完全一改典型的调用者与被调用者之间的关系。当一个协同程序调用 `yield` 时，它不是进入了一个新的函数，而是从一个悬而未决的 `resmue` 调用中返回。同样地，对于 `resume` 的调用也不会启动一个新函数，而是从一次 `yield` 调用中返回。这项特性正可以用于匹配 `send` 和 `receive`，这两者都认为自己是主动方，对方式被动方。`receive` 唤醒生产者的执行，`send` 产出一个新值返还给消费者：
+
+```lua
+-- 消费者
+function receive()
+    local status, value = coroutine.resume(producer)
+    return value
+end
+
+function send(x)
+    coroutine.yield(x)
+end
+
+-- 生产者现在一定是一个协同程序：
+producer = coroutine.creat(
+	function ()
+    	while true do
+        	local x = io.read()  -- 产生新值
+        	send(x)
+        end
+    end)
+```
+
+**执行顺序**：
+
+-   调用 `receive` 函数时，它会调用 `coroutine.resume(producer)`，这会开始或继续执行 `producer` 协程。
+-   `producer` 协程中的 `io.read()` 会等待用户输入，一旦用户输入了一行文本，它会调用 `send(x)` 函数。
+-   `send(x)` 函数会调用 `coroutine.yield(x)`，这会暂停 `producer` 协程，并将 `x` 作为结果返回给 `receive` 函数，`receive` 函数会得到 `x` 并返回。
+-   每次调用 `receive` 函数，都会继续 `producer` 协程的执行，使其继续等待下一个输入并暂停，如此循环。
+
+程序通过调用消费者来启动。这种设计称为“消费者驱动”。
+
+还可以扩展上述设计，实现“**过滤器**”。过滤器是一种位于生产者和消费者之间的处理功能，可用于对数据的一些变换。过滤器既是一个消费者又是一个生产者，它唤醒一个生产者促使其产生新值，然后又将变换后的值传递给消费者。例如可以在前面代码中添加一个过滤器，在每行起始处插入一个行号。代码如下：
+
+```lua
+function receive(prod)
+    local status, value = coroutine.resume(prod)
+    return value
+end
+
+function send(x)
+    coroutine.yield(x)
+end
+
+function producer ()
+    return coroutine.creat(function()
+        while true do
+            local x = io.read()  -- 产生新值
+            send(x)
+        end
+    end)
+end
+
+function filter(prod)
+    return coroutine.creat(function ()
+        for line = 1, math.huge do
+            local x = receive(prod)  -- 获取新值
+            x = string.format("%5d %s", line, x)
+            send(x)  -- 将新值发送给消费者
+        end
+    end)
+end
+
+function consumer(prod)
+    while true do
+        local x = receive(prod)  -- 获取新值
+        io.write(x, "\n")  --消费新值
+    end
+end
+
+-- 运行
+p = producer
+f = filter(p)
+consumer(f)
+-- 或者更简单地写为：
+-- consumer(filter(producer()))
+```
+
+协同程序也是一种（非抢先的）多线程。在 `pipe` 中每项任务都在各自独立的进程中运行，而在协同程序中每项任务都在各自独立的协同程序中运行。`pipe` 在 `writer` (消费者)与 `reader` (生产者)之间提供一 个缓冲器，因此它们的运行速度允许存在一定差异。值得注意的是，在 `pipe` 中进程间的切换代价很高。而在协同程序中，切换代价则小得多，因此 `writer` 和 `reader` 可以彼此协作地运行。
+
+## 以协同程序实现迭代器
+
+## 非抢先式的多线程
