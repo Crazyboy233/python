@@ -665,6 +665,224 @@ consumer(f)
 
 协同程序也是一种（非抢先的）多线程。在 `pipe` 中每项任务都在各自独立的进程中运行，而在协同程序中每项任务都在各自独立的协同程序中运行。`pipe` 在 `writer` (消费者)与 `reader` (生产者)之间提供一 个缓冲器，因此它们的运行速度允许存在一定差异。值得注意的是，在 `pipe` 中进程间的切换代价很高。而在协同程序中，切换代价则小得多，因此 `writer` 和 `reader` 可以彼此协作地运行。
 
-## 以协同程序实现迭代器
+**以协同程序实现迭代器**
 
-## 非抢先式的多线程
+协同程序可以一改传统的调用者与被调用者之间关系。
+
+**非抢先式的多线程**
+
+这里主要讲了协同程序和线程的配合使用，同时在 lua 中，类似检测文件描述符是否就绪的函数是 select。该函数在 LuaSocket 中。
+
+# 第10章 完整的示例
+
+介绍两个完整的程序示例，展示 Lua 的应用能力。
+
+-   将 Lua 作为一种数据描述语言的用法
+-   实现 ”马尔可夫链“ 算法
+
+## 数据描述
+
+```lua
+-- test.lua
+function fwrite (fmt, ...)
+    return io.write(string.format(fmt,...))
+end
+
+function writeheader()
+    io.write([[
+    <html>
+    <head>>title>Projects using Lua</title></head>
+    <body bgcolor="#FFFFFF">
+        Here are brief descriptions of some projects around the
+        world that use ‹a href="home.html">Lua</a>. <br>
+    ]])
+end
+
+function entry1(o)
+    count = count + 1
+    local title = o.title or '(notitle)'
+    fwrite('<li><a href = "#%d">%s</a>\n', count, title)
+end
+
+function entry2 (o) 
+    count = count + 1
+    fwrite ('<hr>\n<h3>\n')
+    
+    local href = o.url and string.format (' href="%s"', o.url) or '' 
+    local title = o.title or o.org or 'org'
+    fwrite('<a name="%d"%s>%s</a>\n', count, href, title)
+    
+    if o.title and o.org then 
+        fwrite('<br>\n<small><em>%s</em></small>', o.org)
+    end
+        fwrite ('\n</h3>\n')
+    if o.description then
+        fwrite ('%s<p>\n',
+            string.gsub(o.description, '\n\n+', '<p>\n'))
+    end
+
+    if o.email then
+    fwrite( 'Contact: <a href="mailto:%s">%s</a>\n',
+        o.email, o.contact or o.email) 
+    elseif o.contact then
+        fwrite('Contact: %s\n', o.contact) 
+    end
+end
+
+function writetail ()
+    fwrite('</body></html>\n')
+end
+
+local inputfile = 'db.lua' 
+writeheader ()
+
+count = 0
+f = loadfile (inputfile)  -- 加载数据文件
+
+entry = entry1         -- 定义'entry"
+fwrite ('<ul>\n')
+f()  -- 运行数据文件
+fwrite('</ul>\n')
+
+count = 0
+entry = entry2  -- 重定义'entry '
+f()   -- 再次运行数据文件
+
+writetail ()
+```
+
+```lua
+-- db.lua
+entry{
+    title = "Lua Documentation",
+    org = "Some Organization",
+    url = "https://www.lua.org/docs.html",
+    description = "Official documentation for Lua, including the reference manual and programming guide.",
+    email = "support@lua.org"
+}
+
+entry{
+    title = "LuaRocks",
+    org = "LuaRocks Maintainers",
+    url = "https://luarocks.org/",
+    description = "A package manager for Lua modules. Simplifies managing dependencies for Lua projects.",
+    contact = "Community Maintainers"
+}
+```
+
+## 马尔可夫链
+
+该算法根据原始文本中 n 个单词的序列来确定后面的单词，从而生成随机的文本。在本例中，将 n 定为 2。
+
+程序先读取原始文本，并创建 一个 `table`。`table` 的创建过程为：以每两个单词为一个前缀，在 `table` 中创建 一个列表，该列表记录了原始文本中所有位于该前缀之后的单词。当构建好这 个 `table` 后，程序就利用它来生成随机文本。结果中的每个单词都来自于它在原始文本中的前缀，而具有相同前缀的单词出现在结果中的概率也与原始文本一样。最终会得到一串比较随机的文本。例如，以本书原版作为原始文本输入程序，那么输出的结果中就会有这么 一段: "Constructors can also traverse a table constructor, then the parentheses in the following line does the whole file in a field n to store the contents of each function, but to show its only argument. If you want to find the maximum element in an array can return both the maximum value and continues showing the prompt and running the code. The following words are reserved and cannot be used to convert between degrees and radians."
+
+------
+
+
+
+```lua
+-- 将两个单词以空格相连，编成一个前缀：
+function prefix(w1, w2)
+    return w1 .. " " .. w2
+end
+```
+
+使用字符串 NOWORD（“\n”）来初始化一个前缀单词，并且标记文本的结尾。例如，对于原始文本：“the more we try the more we do”。由此构造出来的 `table` 的内容如下：
+
+```lua
+{ ["\n \n"] = {"the"},
+  ["\n the"] = {"more"},
+  ["the more"] = {"we", "we"},
+  ["more we"] = {"try", "do"},
+  ["we try"] = {"the"},
+  ["try the"] = {"more"},
+  ["we do"] = {"\n"},
+}
+```
+
+程序将这个 `table` 保存在变量 `statetab` 中。若要向此 `table` 中的某个前缀列表插入一个新单词，可以使用以下函数：
+
+```lua
+function insert (index, value)
+    local list = statetab[index]
+    if list == nil then
+        statetab[index] = {value}
+    else
+        list[#list + 1] = value
+    end
+end
+```
+
+先检查某前缀是否已拥有了一个列表。如果没有，便以新值（参数 `value`）来创建一个新的列表。否则就将新值添加到现有列表的末尾。
+
+为了创建 `table` `statetab`，用两个变量 `w1` 和 `w2` 来记录最后读取的两个单词。每读取一个新单词，就将它添加到与 `w1-w2` 相关联的列表中，然后更新 `w1` 和 `w2` 。
+
+当创建完 `table` 后，程序便开始生成具有 MAXGEN 单词的文本。首先，重新初始化变量 `w1` 和 `w2` 。然后，对于每个前缀，程序从其对应的单词列表中随机地选出下一个单词，并打印。最后更新 `w1` 和 `w2` 。
+
+下面是该程序的辅助函数定义：
+
+```lua
+function allwords()
+    local line = io.read()  -- 当前行
+    local pos = 1   -- 行中当前位置
+    return function()  -- 迭代器函数
+        while line do  -- 只要还有行就一直循环
+            local s, e = string.find(line, "%w+", pos)  
+            if s then  -- 找到单词
+                pos = e + 1  -- 更新下一个位置
+                return string.sub(line, s, e)  -- 返回该单词
+            else
+                line = io.read()  -- 没有找到单词，读取下一行
+                pos = 1  -- 从行首重新开始
+            end
+        end
+        return nil  -- 所有行都读完了，返回nil
+    end
+end
+
+function prefix(w1, w2)
+    return w1.. " ".. w2
+end
+
+local statetab = {}
+
+function insert (index, value)
+    local list = statetab[index]
+    if list == nil then
+        statetab[index] = {value}
+    else
+        list[#list + 1] = value
+    end
+end
+
+-- 下面是主程序
+local N = 2  -- 前缀长度
+local MAXGEN = 10000
+local NOWORD = "\n"
+
+-- 构建前缀表table
+local w1, w2 = NOWORD, NOWORD
+for w in allwords() do
+    insert(prefix(w1, w2), w)
+    w1 = w2; w2 = w;
+end
+insert(prefix(w1, w2), NOWORD)
+
+-- 生成文本
+w1 = NOWORD; w2 = NOWORD  -- 重新初始化
+for i = 1, MAXGEN do
+    local list = statetab[prefix(w1, w2)]
+    -- 从列表中选择一个随机项
+    local r = math.random(#list)
+    local nextword = list[r]
+    if nextword == NOWORD then 
+        break; 
+    end
+    io.write(nextword, " ")
+    w1 = w2; w2 = nextword
+end
+io.write("\n")
+```
+
+
+
