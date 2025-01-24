@@ -48,5 +48,19 @@ end
 
 ## 链表
 
+由于 `table` 是动态的实体，所以在 Lua 中实现链表是很方便的。每个结点以一个 `table` 来表 示 ， 一个“链接”只 是结点 `table` 中的一个字段 ， 该字段包含了对其他 `table` 的引用。 例如，要实现一个基础的列表，其中每个结点具有两个字段：`next` 和 `value`，先创建一个用作列表头结点的变量：
+
+```lua
+list = nil
+-- 在表头插入一个元素，元素值为v：
+list = {next = list, value = v}
+-- 遍历此列表：
+local l = list
+while l do 
+    -- <访问 l.value>
+    l = l.next
+end
+```
+
 
 
