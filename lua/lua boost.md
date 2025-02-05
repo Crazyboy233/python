@@ -62,5 +62,61 @@ while l do
 end
 ```
 
+## 队列与双向队列
 
+在 Lua 中实现队列的一种简单方法是使用 `table` 库的函数 `insert` 和 `remove`。这两个函数可 以在一个数组的任意位置插入或删除元素，并且根据操作要求移动后续元素。不过对于较大的结构，移动的开销是很大的。 一种更高效的实现是使用两个索引，分别用于首尾的两个元素：
 
+```lua
+function ListNew ()
+    return {first = 0, last = -1}
+end
+```
+
+为了避免污染全局名称空间，将在一个 `table` 内部定义所有的队列操作，这个table且称为 `List`。这样，将上例重新写为:
+
+```lua
+List = {}
+function List.new()
+    return {first = 0, last = -1}
+end
+```
+
+现在就可以在常量时间内完成在两端插入或删除元素了。
+
+```lua
+function List.pushfirst (list, value)
+    local first = list.first - 1
+    list.first = first
+    list[first] = value
+end
+
+function List.pushlast (list, value)
+    local last = list.last + 1
+    list.last = last
+    list[last] = value
+end
+
+function List.popfirst (list)
+    local first = list.first
+    if first > list.last then
+        error("list is empty")
+    end
+    local value = list[first]
+    list[first] = nil  -- 为了允许垃圾收集
+    list.first = first + 1
+    return value
+end
+
+function List.poplast (list)
+    local last = list.last
+    if list.first > last then
+        error("list is empty")
+    end
+    local value = list[last]
+    list[last] = nil  -- 为了允许垃圾收集
+    list.last = last - 1
+    return value
+end
+```
+
+如果希望该结构能严格地遵循队列的操作规范，那么只调用 `pushlast` 和 `popfirst` 就可以了， 这样 `first` 和 `last` 都会不断地增长。
