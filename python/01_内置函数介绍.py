@@ -11,5 +11,5 @@
     __iadd__, __isub__,
     __str__, __repr__
 ]
-高优函数：
+高优函数：[__init__, __str__, __repr__, __call__, __new__]
 """
