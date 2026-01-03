@@ -3,8 +3,10 @@
 注：该线程池只为初学者学习使用，在工程项目中，一般使用标准库
 """
 
-"""
-下面为初学者版本
+""""
+========================
+    下面为初学者版本
+========================
 """
 import threading
 import queue
@@ -48,6 +50,7 @@ class SimpleThreadPool:
             t.join()
 
 # 使用示例
+# 定义任务
 def work(x):
     print(f"处理{x}")
     time.sleep(1)
@@ -61,6 +64,48 @@ pool.shutdown()
 
 
 """
-下面为使用标准库版本
+============================
+    下面为使用标准库版本
+============================
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+import logging
+
+# 配置日志系统
+logging.basicConfig(level=logging.INFO)
+
+# 模拟一个会失败的任务
+def task(x):
+    if x == 3:
+        raise ValueError("此时 x == 3, 模拟错误")
+    
+    time.sleep(1)
+    return x
+
+results = []
+
+# 这里使用 with 自动管理线程池的生命周期，with 结束时会自动执行 shutdown(wait=True)
+with ThreadPoolExecutor(max_workers=8, thread_name_prefix="worker") as executor:
+    futures = {
+        executor.submit(task, i):i 
+        for i in range(10)  # 这里是提交10个任务
+    }
+
+    # as_completed 会在任务完成时按顺序返回 future
+    for future in as_completed(futures):
+        i = futures[future]
+        try:
+            # 尝试执行任务
+            result = future.result(timeout=2)
+            results.append(result)
+        except Exception as e:
+            # 统一在这里处理异常
+            logging.exception(f"任务 {i} 失败")
+
+logging.info(f"完成结果: {results}")
+
+"""
+注：上述代码模拟了x=3报错。由于是10个任务，失败1个，成功9个。所以结果应该是 [0, 1, 2, 4, 5, 6, 7, 8, 9]
+"""
