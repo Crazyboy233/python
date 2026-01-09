@@ -7,6 +7,7 @@ python 中的关键字：
 python 中的内置函数：
 [
     iter(),
+    enumerate(),
 ]
 
 类的内置函数：
@@ -67,6 +68,21 @@ print(next(it))  # 输出：1（等价于 it.__next__()）
 print(next(it))  # 输出：2
 print(next(it))  # 输出：3
 # print(next(it))  # 抛出 StopIteration 异常（迭代器耗尽）
+
+# 2. enumerate()
+# 作用：将一个可迭代对象（如列表、字符串、元组）组合成一个索引序列，同时返回每个元素的索引和值。
+# 语法： enumerate(iterable, start=0)
+# iterable：必须参数，要遍历的可迭代对象（列表、字符串、元组等）。
+# start：可选参数，索引的起始值，默认是 0。
+# 返回值：一个 enumerate 对象（可迭代），可以通过 list() 转换为列表查看具体内容。
+# 示例如下：
+fruits = ["apple", "banana", "orange"]
+# 使用 enumerate 遍历
+for index, value in enumerate(fruits):
+    print(f"索引：{index}，元素：{value}")
+# enumerate 返回的是迭代器，可通过list()转换为列表。
+enum_fruits = enumerate(fruits, start=1)
+print(list(enum_fruits))  # 输出：[(1, 'apple'), (2, 'banana'), (3, 'orange')]
 
 
 
