@@ -10,7 +10,7 @@ dmesg [选项]
 |----|----|----|
 |无选项|输出全部内核缓冲区日志|`dmesg`|
 |`-H/--human`|人类可读格式，带时间戳和颜色高亮|`dmesg -H`|
-|`-T/--ctime`|用系统本地时间显示日志时间(而非启动后的秒数)|`dmesg -T` **常用**|
+|`-T/--ctime`|用系统本地时间显示日志时间(而非启动后的秒数)|`dmesg -T` <span style="color: red;">**常用**</span>|
 |`-w/--follow`|实时监控新的内核日志(类似 `tail -f`)|`dmesg -w`|
 |`-l <级别>`|过滤指定日志级别，支持 `emerg`/`alert`/`crit`/`err`/`warn`/`info`/`debug`|`dmesg -l err`(只看错误日志)|
 |`-k/--kernel`|只显示内核相关日志|`dmesg -k`|
