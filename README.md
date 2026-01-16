@@ -1,5 +1,12 @@
 # 个人学习使用
 
+如果需要运行 pyhton 中的代码，需要先执行 install.sh 脚本。
+```sh
+chmod +x install.sh
+./install.sh
+```
+注：仅支持 python3
+
 ### 目录结构如下：
 ```python
 .
