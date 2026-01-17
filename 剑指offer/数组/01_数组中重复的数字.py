@@ -11,3 +11,16 @@
 2 <= n <= 100000
 """
 
+class Solution:
+    def findRepeatDocument(self, documents:list[int]) -> None:
+        for i in range(len(documents)):
+            for j in range(i+1, len(documents)):
+                if documents[i] == documents[j]:
+                    return documents[i]
+        return -1        
+        
+# 测试
+
+documents = [2, 5, 3, 0, 5, 0]
+solution = Solution().findRepeatDocument(documents=documents)
+print(f"存在副本的文件id为：{solution}") 
