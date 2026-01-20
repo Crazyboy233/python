@@ -13,10 +13,11 @@
 
 class Solution:
     def findRepeatDocument(self, documents:list[int]) -> None:
-        for i in range(len(documents)):
-            for j in range(i+1, len(documents)):
-                if documents[i] == documents[j]:
-                    return documents[i]
+        temp = set()
+        for doc in documents:
+            if doc in temp:
+                return doc
+            temp.add(doc)
         return -1        
         
 # 测试

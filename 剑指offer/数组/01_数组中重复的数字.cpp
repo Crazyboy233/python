@@ -13,15 +13,16 @@
 
 # include <iostream>
 # include <vector>
+#include <unordered_set>
 class Solution {
 public:
     int findRepeatDocument(std::vector<int> documents) {
-        for (int i = 0; i < documents.size() - 1; ++i){
-            for (int j = i + 1; j < documents.size(); ++j) {
-                if (documents[i] == documents[j]) {
-                    return documents[i];
-                }
+        std::unordered_set<int> temp;
+        for (int doc : documents){
+            if (temp.find(doc) != temp.end()) {
+                return doc;
             }
+            temp.insert(doc);
         }
         return -1;
     }
