@@ -1,5 +1,5 @@
 
-```Mermaid
+```mermaid
 flowchart TD
     subgraph init[初始化阶段]
         A[初始化模型参数 W,b<br/>随机初始化或预训练值]
