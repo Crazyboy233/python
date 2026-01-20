@@ -10,36 +10,27 @@ chmod +x install.sh
 ### 目录结构如下：
 ```python
 .
-├── c++\
+├── c++
 │   └── Step 1：了解基础语法.md
-├── linux\
+├── install.sh
+├── linux
 │   └── command.md
 ├── lua
-│   ├── 001.lua
-│   ├── 002.lua
 │   ├── 01_元表的元方法介绍.lua
 │   ├── lua base.md
 │   ├── lua boost.md
-│   ├── 数据描述\
-│   │   ├── db.lua
-│   │   └── test.lua
-|   ├── scripts...  # 饥荒代码文件 version:暂无
-│   └── 马尔可夫链\
-│       └── markov.lua
-├── python\
+│   ├── scripts
+├── python
 │   ├── 01_内置函数介绍.py
 │   ├── 02_容器及方法介绍.py
 │   ├── py基础语法.md
-│   ├── test001\
-│   │   ├── py01.py
-│   │   ├── py02.py
-│   │   ├── py03.py
-│   │   ├── py04.py
-│   │   └── py05.py
-│   ├── third_party\
-│   │   └── 01_decorator.py
-│   └── utils\
-│       └── 01_线程池.py
-├── install.sh
-└── README.md
+│   ├── third_party
+│   └── utils
+├── README.md
+├── 剑指offer
+│   ├── README.md
+│   └── 数组\
+└── 训练相关
+    ├── worker节点计算.md
+    └── 训练流程图.md
 ```
