@@ -19,5 +19,14 @@ m*n 的二维数组 plants 记录了园林景观的植物排布情况，具有�
 0 <= m <= 1000
 """
 class Solution:
-    def findTargetIn2DPlants(self, plants: List[List[int]], target: int) -> bool:
-        pass
+    def findTargetIn2DPlants(self, plants: list[list[int]], target: int) -> bool:
+        for i in plants:
+            for j in i:
+                if j == target:
+                    return True
+        return False        
+
+solution = Solution()
+plants = [[2,3,6,8],[4,5,8,9],[5,9,10,12]]
+target = 8
+print(solution.findTargetIn2DPlants(plants=plants, target=target))

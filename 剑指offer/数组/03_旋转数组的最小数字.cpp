@@ -16,9 +16,28 @@
 -5000 <= stock[i] <= 5000
 */
 #include <vector>
+#include <iostream>
 class Solution {
 public:
     int inventoryManagement(std::vector<int>& stock) {
-        
+        for (int i = 0; i < stock.size() - 1; ++i) {
+            if (stock[i] > stock[i+1]) {
+                return stock[i+1];
+            }
+        }
+        return -1;
     }
 };
+
+// 测试
+int main() {
+    Solution solution;
+    std::vector<int> stock = {4,5,8,3,4};
+    int result = solution.inventoryManagement(stock);
+    std::cout << result << std::endl;
+
+    std::vector<int> stock2 = {5,7,9,1,2};
+    int result2 = solution.inventoryManagement(stock2);
+    std::cout << result2 << std::endl;
+    return 0;
+}

@@ -12,6 +12,15 @@
 class Solution {
 public:
     int cuttingBamboo(int bamboo_len) {
+        if (bamboo_len < 2) {
+            return 0;
+        }
+        if (bamboo_len == 2) {
+            return 1;
+        }
+        if (bamboo_len == 3) {
+            return 2;
+        }
         
     }
 };

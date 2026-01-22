@@ -16,5 +16,15 @@
 -5000 <= stock[i] <= 5000
 """
 class Solution:
-    def inventoryManagement(self, stock: List[int]) -> int:
-        pass
+    def inventoryManagement(self, stock: list[int]) -> int:
+        for i in range(len(stock)):
+            if stock[i] > stock[i+1]:
+                return stock[i+1]
+        return -1
+
+# 测试
+solution = Solution()
+stock = [4,5,8,3,4]
+stock2 = [5,7,9,1,2]
+print(solution.inventoryManagement(stock=stock))
+print(solution.inventoryManagement(stock=stock2))
