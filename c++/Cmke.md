@@ -60,20 +60,3 @@ target_link_libraries(my_app PRIVATE common_settings)
 ```
 
 ---
-
-### **Step 5：参考开源项目**
-最后，参考一些开源项目或 Modern CMake 示例，模仿并修改项目配置文件，本质上这些 CMake 文件非常类似。
-
-推荐参考：
-- [fmtlib](https://github.com/fmtlib/fmt)
-- [GoogleTest](https://github.com/google/googletest)
-- [Modern CMake Examples](https://github.com/dubreuia/modern-cmake-examples)
-
----
-
-## 总结
-- 如果没有特殊需求（如维护遗留项目），建议你直接开始学习 Modern CMake，因为它是未来趋势，开源项目和生产环境正加速全面拥抱它。
-- 为了兼容遗留项目，你可以在 Modern CMake 熟练之后，再快速了解传统 CMake 的少量概念，基本你不需要刻意深挖传统写法。
-
-直接进入 Modern CMake，你会轻松高效地构建现代化的 C++ 项目！
-
