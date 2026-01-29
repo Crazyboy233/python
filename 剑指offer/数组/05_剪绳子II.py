@@ -11,4 +11,26 @@
 """
 class Solution:
     def cuttingBamboo(self, bamboo_len: int) -> int:
-        pass
+        if bamboo_len < 2:
+            return 0
+        if bamboo_len == 2:
+            return 1
+        if bamboo_len == 3:
+            return 2
+        x = bamboo_len // 3
+        y = bamboo_len % 3
+        sum = 1
+        for i in range(x):
+            sum = sum % 1000000007 * 3
+        if y == 0:
+            return sum
+        if y == 1:
+            return sum // 3 % 1000000007 * 4
+        if y == 2:
+            return sum % 1000000007 * 2 % 1000000007
+        return -1
+
+# 测试
+solution = Solution()
+bamboo_len = 10
+print(solution.cuttingBamboo(bamboo_len=bamboo_len))

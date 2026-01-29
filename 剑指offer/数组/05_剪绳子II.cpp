@@ -9,6 +9,7 @@
 提示：
 2 <= bamboo_len <= 1000
 */
+#include <iostream>
 class Solution {
 public:
     int cuttingBamboo(int bamboo_len) {
@@ -21,6 +22,32 @@ public:
         if (bamboo_len == 3) {
             return 2;
         }
-        
+        int x = bamboo_len / 3;
+        int y = bamboo_len % 3;
+        int sum = 1;
+        for (int i = 0; i < x; ++i) {
+            sum = sum % 1000000007 * 3;
+        }
+        if (y == 0) {
+            return sum;
+        }
+        if (y == 1) {
+            sum = sum / 3 % 1000000007 * 4 % 1000000007;
+            return sum;
+        }
+        if (y == 2) {
+            sum = sum % 1000000007 * 2 % 1000000007;
+            return sum;
+        }
+        return -1;
     }
 };
+
+// 测试
+int main() {
+    Solution solution;
+    int bamboo_len = 10;
+    std::cout << solution.cuttingBamboo(bamboo_len) << std::endl;
+
+    return 0;
+}
