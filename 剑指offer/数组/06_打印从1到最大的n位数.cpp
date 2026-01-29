@@ -11,9 +11,26 @@
 */
 
 #include <vector>
+#include <math.h>
+#include <iostream>
 class Solution {
 public:
     std::vector<int> countNumbers(int cnt) {
-        
+        std::vector<int> res;
+        int size = pow(10, cnt);
+        for (int i = 1; i < size; ++i) {
+            res.push_back(i);
+        }
+        return res;
     }
 };
+
+int main() {
+    Solution solution;
+    std::vector<int> res = solution.countNumbers(2);
+    for (auto & i : res) {
+        std::cout << i << ",";
+    }
+    std::cout << std::endl;
+    return 0;
+}

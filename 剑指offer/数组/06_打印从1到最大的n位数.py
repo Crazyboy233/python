@@ -11,5 +11,13 @@
 """
 
 class Solution:
-    def countNumbers(self, cnt: int) -> List[int]:
-        pass
+    def countNumbers(self, cnt: int) -> list[int]:
+        size = 10 ** cnt
+        li = []
+        li.extend(range(1,size))
+        return li
+
+solution = Solution()
+cnt = 2
+li = solution.countNumbers(cnt=cnt)
+print(li)
