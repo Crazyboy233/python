@@ -23,7 +23,8 @@ double findMedian() - 返回目前所有元素的中位数。
 提示：
 最多会对 addNum、findMedian 进行 50000 次调用。
 */
-
+#include <vector>
+#include <iostream>
 class MedianFinder {
 public:
     /** initialize your data structure here. */
@@ -32,12 +33,18 @@ public:
     }
     
     void addNum(int num) {
-        
+        vec_.push_back(num);
     }
     
     double findMedian() {
-        
+        std::sort(vec_.begin(), vec_.end());
+        if (vec_.size() % 2 == 1) {
+            return vec_[vec_.size() / 2];
+        }
+        return double((vec_[vec_.size() / 2] + vec_[vec_.size() / 2 - 1])) / 2;
     }
+private:
+    std::vector<int> vec_;
 };
 
 /**
@@ -46,7 +53,17 @@ public:
  * obj->addNum(num);
  * double param_2 = obj->findMedian();
  */
-
+int main() {
+    MedianFinder* obj = new MedianFinder();
+    obj->addNum(1);
+    obj->addNum(2);
+    double param_1 = obj->findMedian();
+    std::cout << param_1 << std::endl;
+    obj->addNum(3);
+    double param_2 = obj->findMedian();
+    std::cout << param_2 << std::endl;
+    return 0;
+}
 
 
 // 提示：小顶堆和大顶堆

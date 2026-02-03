@@ -15,9 +15,33 @@
 */
 
 #include <vector>
+#include <algorithm>
+#include <iostream>
 class Solution {
 public:
     std::vector<int> inventoryManagement(std::vector<int>& stock, int cnt) {
-        
+        std::sort(stock.begin(), stock.end());
+        std::vector<int> res(cnt);
+        for (int i = 0; i < cnt; ++i) {
+            res[i] = stock[i];
+        }
+        return res;
     }
 };
+
+int main() {
+    Solution solution;
+    std::vector<int> stock = {2,5,7,4};
+    std::vector<int> stock2 = {0,2,3,6};
+    std::vector<int> res = solution.inventoryManagement(stock, 1);
+    std::vector<int> res2 = solution.inventoryManagement(stock2, 2);
+    for (auto & num : res) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    for (auto & num : res2) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    return 0;
+}

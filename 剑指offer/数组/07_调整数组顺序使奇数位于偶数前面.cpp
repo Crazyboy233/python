@@ -13,9 +13,46 @@
 0 <= actions[i] <= 10000
 */
 #include <vector>
+#include <iostream>
 class Solution {
 public:
     std::vector<int> trainingPlan(std::vector<int>& actions) {
-        
+        int left = 0;
+        int right = actions.size() - 1;
+        while(left < right) {
+            while(left < right) {
+                if (actions[left] % 2 == 0) {
+                    break;
+                } else {
+                    left++;
+                }
+            }
+            while(left < right) {
+                if (actions[right] % 2 == 1) {
+                    break;
+                } else {
+                    right--;
+                }
+            }
+            if (left < right) {
+                int temp = actions[left];
+                actions[left] = actions[right];
+                actions[right] = temp;
+                left++;
+                right--;
+            }
+        }
+        return actions;
     }
 };
+
+int main() {
+    Solution solution;
+    std::vector<int> vec = {1,2,3,4,5};
+    solution.trainingPlan(vec);
+    for(auto & num : vec) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    return 0;
+}
