@@ -12,8 +12,7 @@ chmod +x install.sh
 .
 ├── c++
 │   ├── Cmke.md
-│   ├── 七七八八的介绍.md
-│   └── 三方库介绍.md
+│   └── 七七八八的介绍.md
 ├── install.sh
 ├── linux
 │   └── command.md
@@ -30,15 +29,15 @@ chmod +x install.sh
 │   ├── 01_内置函数介绍.py
 │   ├── 02_容器及方法介绍.py
 │   ├── py基础语法.md
-│   ├── test001
-│   └── third_party
+│   └── test001
 ├── README.md
 ├── utils
 │   └── 01_线程池.py
+├── 各种三方库.md
 ├── 剑指offer
 │   ├── README.md
 │   └── 数组
-└── 训练相关
+└── 深度学习框架
     ├── worker节点计算.md
     └── 训练流程图.md
 ```
