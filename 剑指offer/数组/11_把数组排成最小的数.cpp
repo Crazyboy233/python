@@ -26,10 +26,11 @@
 输出结果可能非常大，所以你需要返回一个字符串而不是整数
 拼接起来的数字可能会有前导 0，最后结果不需要去掉前导 0
 */
-
+#include <string>
+#include <vector>
 class Solution {
 public:
-    string crackPassword(vector<int>& password) {
+    std::string crackPassword(std::vector<int>& password) {
         
     }
 };
