@@ -11,11 +11,45 @@
 
 提示： 
 1 <= n <= 1690
+
+url = https://leetcode.cn/problems/chou-shu-lcof/description/
 */
+
+#include <iostream>
+#include <vector>
 
 class Solution {
 public:
     int nthUglyNumber(int n) {
-        
+        std::vector<int> dp(n+1);
+        dp[1] = 1;
+        int p2 = 1;
+        int p3 = 1;
+        int p5 = 1;
+        for (int i = 2; i <= n; ++i) {
+            int num2 = p2 * 2;
+            int num3 = p3 * 3;
+            int num5 = p5 * 5;
+            int min = std::min(std::min(num2, num3), num5);
+            dp[i] = min;
+            if (num2 == min) {
+                p2++;
+            }
+            if (num3 == min) {
+                p3++;
+            }
+            if (num5 == min) {
+                p5++;
+            }
+        }
+        return dp[n];
     }
 };
+
+int main() {
+    Solution solution;
+    int n = 10;
+    int res = solution.nthUglyNumber(n);
+    std::cout << res << std::endl;
+    return 0;
+}

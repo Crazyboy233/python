@@ -4,26 +4,23 @@
 请判断并返回这排文物的所属朝代编号是否能够视为连续的五个朝代（如遇未知朝代可算作连续情况）。
 
 示例 1：
-
 输入：places = [0, 6, 9, 0, 7]
 输出：True
- 
 
 示例 2：
-
 输入：places = [7, 8, 9, 10, 11]
 输出：True
- 
 
 提示：
-
 places.length = 5
-0 <= places[i] <= 13
- 
+0 <= places[i] <= 13 
 */
+
+#include <vector>
+
 class Solution {
 public:
-    bool checkDynasty(vector<int>& places) {
+    bool checkDynasty(std::vector<int>& places) {
         
     }
 };

@@ -2,25 +2,47 @@
 购物车内的商品价格按照升序记录于数组 price。请在购物车中找到两个商品的价格总和刚好是 target。若存在多种情况，返回任一结果即可。
 
 示例 1：
-
 输入：price = [3, 9, 12, 15], target = 18
 输出：[3,15] 或者 [15,3]
-示例 2：
 
+示例 2：
 输入：price = [8, 21, 27, 34, 52, 66], target = 61
 输出：[27,34] 或者 [34,27]
- 
 
 提示：
-
 1 <= price.length <= 10^5
 1 <= price[i] <= 10^6
 1 <= target <= 2*10^6
 */
 
+#include <vector>
+#include <iostream>
+
 class Solution {
 public:
-    vector<int> twoSum(vector<int>& price, int target) {
-        
+    std::vector<int> twoSum(std::vector<int>& price, int target) {
+        std::vector<int> res;
+        for (int i = 0; i < price.size(); ++i) {
+            for (int j = i + 1; j < price.size(); ++j) {
+                if(price[i] + price[j] == target) {
+                    res.push_back(price[i]);
+                    res.push_back(price[j]);
+                    return res;
+                }
+            }
+        }
+        return res;
     }
 };
+
+int main() {
+    Solution solution;
+    std::vector<int> price = {8, 21, 27, 34, 52, 66};
+    int target = 61;
+    std::vector<int> res = solution.twoSum(price, target);
+    for (int & num : res) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+    return 0;
+}
